@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gym Journal</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b5546f"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#fbf3f1;--card:#fff;--ink:#3b2530;--mut:#8a6f78;--acc:#b5546f;--u:#c9758c;--l:#6f9a86;--p:#e3a06f;--line:#f0dde0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1519;--card:#2b1e24;--ink:#f5e6ea;--mut:#b99ba4;--line:#3d2b33}}
+:root[data-theme="dark"]{--bg:#1f1519;--card:#2b1e24;--ink:#f5e6ea;--mut:#b99ba4;--line:#3d2b33}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif}
+main{max-width:480px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 14px;text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.nav b{font-size:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+.nav button{background:none;border:1px solid var(--line);border-radius:50%;width:36px;height:36px;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.dow{font-size:11px;color:var(--mut);text-align:center;font-family:system-ui,sans-serif}
+.day{aspect-ratio:1;border:1px solid var(--line);background:none;border-radius:10px;font-size:13px;font-family:system-ui,sans-serif;color:var(--ink);padding:0}
+.day.U{background:var(--u);color:#fff;border-color:var(--u)}
+.day.L{background:var(--l);color:#fff;border-color:var(--l)}
+.day.P{background:var(--p);color:#fff;border-color:var(--p)}
+.day.today{outline:2px solid var(--acc);outline-offset:1px}
+.day.sel{box-shadow:0 0 0 3px var(--acc)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:10px;font-family:system-ui,sans-serif}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+.pick{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.pick.on{display:block}
+.pick p{margin:0 0 8px;font-size:14px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opts button{padding:10px;border-radius:12px;border:1px solid var(--line);background:none;font-size:14px}
+.opts .U{background:var(--u);color:#fff;border:0}.opts .L{background:var(--l);color:#fff;border:0}.opts .P{background:var(--p);color:#fff;border:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-size:22px;color:var(--acc)}
+.stats span{font-size:11px;color:var(--mut);font-family:system-ui,sans-serif}
+h2{font-size:16px;margin:0 0 10px}
+.w{display:flex;gap:8px}
+.w input{flex:1;min-width:0;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px}
+.w button{padding:10px 16px;border-radius:12px;border:0;background:var(--acc);color:#fff}
+.hist{margin-top:12px;font-family:system-ui,sans-serif;font-size:14px}
+.hist div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)}
+.hist small{color:var(--mut)}
+.bk{display:flex;gap:8px}.bk button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:none;font-size:14px}.note{font-size:12px;color:var(--mut);margin:8px 0 0;font-family:system-ui,sans-serif}
+</style></head>
+<body><main>
+<h1>My Gym Journal</h1>
+<div class="card">
+  <div class="nav"><button id="prev" aria-label="Previous month">‹</button><b id="title"></b><button id="next" aria-label="Next month">›</button></div>
+  <div class="grid" id="dows"></div>
+  <div class="grid" id="cal" style="margin-top:6px"></div>
+  <div class="legend"><span><i style="background:var(--u)"></i>Upper body</span><span><i style="background:var(--l)"></i>Lower body</span><span><i style="background:var(--p)"></i>Period</span></div>
+  <div class="pick" id="pick"><p id="pickT"></p>
+    <div class="opts"><button class="U" data-v="U">Upper body</button><button class="L" data-v="L">Lower body</button><button class="P" data-v="P">Period (rest)</button><button data-v="">Clear</button></div>
+  </div>
+</div>
+<div class="card"><div class="stats">
+  <div><b id="sS">0</b><span>Sessions</span></div><div><b id="sU">0</b><span>Upper</span></div>
+  <div><b id="sL">0</b><span>Lower</span></div><div><b id="sP">0</b><span>Period days</span></div>
+</div></div>
+<div class="card"><h2>Weight this month</h2>
+  <div class="w"><input id="wi" type="number" step="0.1" inputmode="decimal" placeholder="kg"><button id="ws">Save</button></div>
+  <div class="hist" id="hist"></div>
+</div>
+<div class="card"><h2>Backup</h2>
+  <div class="bk"><button id="ex">Export backup</button><button id="im">Restore backup</button></div>
+  <input type="file" id="fi" accept="application/json,.json" hidden>
+  <p class="note">Your data lives only on this phone. Export a backup now and then.</p>
+</div>
+</main>
+<script>
+var S={days:{},weights:{}};
+try{var raw=localStorage.getItem("gymjournal");if(raw)S=JSON.parse(raw)}catch(e){}
+function save(){try{localStorage.setItem("gymjournal",JSON.stringify(S))}catch(e){}}
+var now=new Date(),Y=now.getFullYear(),M=now.getMonth(),sel=null;
+var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var p2=function(n){return String(n).padStart(2,"0")};
+var mk=function(){return Y+"-"+p2(M+1)};
+var $=function(i){return document.getElementById(i)};
+$("dows").innerHTML=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(function(d){return '<div class="dow">'+d+'</div>'}).join("");
+function render(){
+  $("title").textContent=MN[M]+" "+Y;
+  var first=(new Date(Y,M,1).getDay()+6)%7,n=new Date(Y,M+1,0).getDate(),h="";
+  for(var i=0;i<first;i++)h+="<div></div>";
+  var c={U:0,L:0,P:0};
+  for(var d=1;d<=n;d++){
+    var k=mk()+"-"+p2(d),v=S.days[k]||"";if(v)c[v]++;
+    var t=(d===now.getDate()&&M===now.getMonth()&&Y===now.getFullYear())?" today":"";
+    h+='<button class="day '+v+t+(sel===k?" sel":"")+'" data-k="'+k+'">'+d+'</button>';
+  }
+  $("cal").innerHTML=h;
+  $("sS").textContent=c.U+c.L;$("sU").textContent=c.U;$("sL").textContent=c.L;$("sP").textContent=c.P;
+  $("wi").value=S.weights[mk()]||"";
+  var ks=Object.keys(S.weights).sort(),o="";
+  for(var j=ks.length-1;j>=0;j--){
+    var w=S.weights[ks[j]],pv=j>0?S.weights[ks[j-1]]:null,df="";
+    if(pv!==null){var x=(w-pv).toFixed(1);df=(x>0?"+":"")+x+" kg"}
+    var p=ks[j].split("-");
+    o+="<div><span>"+MN[+p[1]-1]+" "+p[0]+"</span><span><b>"+w+" kg</b> <small>"+df+"</small></span></div>";
+  }
+  $("hist").innerHTML=o;
+  $("pick").className="pick"+(sel&&sel.indexOf(mk())===0?" on":"");
+}
+$("cal").onclick=function(e){
+  var k=e.target.getAttribute&&e.target.getAttribute("data-k");if(!k)return;
+  sel=k;var p=k.split("-");$("pickT").textContent=MN[+p[1]-1]+" "+(+p[2])+" — what did you do?";render();
+};
+$("pick").onclick=function(e){
+  var v=e.target.getAttribute&&e.target.getAttribute("data-v");if(v===null||!sel)return;
+  if(v)S.days[sel]=v;else delete S.days[sel];
+  save();render();
+};
+$("ws").onclick=function(){
+  var v=parseFloat($("wi").value);
+  if(isNaN(v)){delete S.weights[mk()]}else S.weights[mk()]=v;
+  save();render();
+};
+$("prev").onclick=function(){M--;if(M<0){M=11;Y--}sel=null;render()};
+$("next").onclick=function(){M++;if(M>11){M=0;Y++}sel=null;render()};
+$("ex").onclick=function(){
+  var b=new Blob([JSON.stringify(S)],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="gym-journal-backup-"+now.toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);a.click();a.remove();
+};
+$("im").onclick=function(){$("fi").click()};
+$("fi").onchange=function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{var d=JSON.parse(r.result);
+      if(d&&d.days&&d.weights&&confirm("Replace current data with this backup?")){S=d;save();render()}
+      else if(!(d&&d.days&&d.weights))alert("This file is not a valid backup.");
+    }catch(x){alert("This file is not a valid backup.")}
+    $("fi").value="";
+  };
+  r.readAsText(f);
+};
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+render();
+</script></body></html>
